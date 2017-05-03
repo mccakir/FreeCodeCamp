@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Local Weather App</title>
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://rawgithub.com/darkskyapp/skycons/master/skycons.js"></script>
+    <!-- Bootstrap-Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script>
+        $(document).ready(function(){
+
+            var city=document.getElementById("city");
+            var temp=document.getElementById("temp");
+            var sweather=document.getElementById("weather");
+            var apiKey="2577b43a0382051cc3e4534802986bb6";
+            var latitude="";
+            var longitude="";
+            var weather="";
+            var celcius=" &#176C";
+            var fah=" &#176F";
+            var tempDegree;
+
+            if(navigator.geolocation){
+                navigator.geolocation.getCurrentPosition(function(position){
+                    latitude+=position.coords.latitude;
+                    longitude+=position.coords.longitude;
+
+                    $.getJSON("http://api.openweathermap.org/data/2.5/weather?lat="+latitude+"&lon="+longitude+"&APPID="+apiKey,function (result) {
+                        var rawJson = JSON.stringify(result);
+                        var json = JSON.parse(rawJson);
+                        city.innerHTML+=json.name+","+json.sys.country;
+                        tempDegree=(Math.round(json.main.temp-274.15));
+                        temp.innerHTML+=tempDegree+celcius;
+
+                        weather=json.weather[0].main;
+                        sweather.innerHTML+=weather;
+                        weather=weather.toLocaleLowerCase();
+
+                        var skycons = new Skycons({"color": "orange"});
+                        if(weather.indexOf("rain") >= 0) {
+                            skycons.set("animated-icon", Skycons.RAIN);
+                        }
+
+                        else if (weather.indexOf("sunny") >= 0) {
+                            skycons.set("animated-icon", Skycons.CLEAR_DAY);
+                        }
+
+                        else if (weather.indexOf("clear") >= 0) {
+                                skycons.set("animated-icon", Skycons.CLEAR_DAY);
+                        }
+
+                        else if (weather.indexOf("cloud") >= 0) {
+                            if (timeHour >= 7 && timeHour < 20) {
+                                skycons.set("animated-icon", Skycons.PARTLY_CLOUDY_DAY);
+                            }
+
+                            else {
+                                skycons.set("animated-icon", Skycons.PARTLY_CLOUDY_NIGHT);
+                            }
+                        }
+
+                        else if (weather.indexOf("thunderstorm") >= 0) {
+                            skycons.set("animated-icon", Skycons.SLEET);
+                        }
+
+                        else if (weather.indexOf("snow") >= 0) {
+                            skycons.set("animated-icon", Skycons.SNOW);
+                        }
+                        skycons.play();
+                    })
+                });
+            }
+
+            $('#temp').on('click',function(){
+                if(temp.innerHTML.charAt(temp.innerHTML.length-1)=="C"){
+                    tempDegree=Math.round((tempDegree*1.8)+32);
+                    temp.innerHTML=tempDegree+fah;
+                }
+                else{
+                    tempDegree=Math.round((tempDegree-32)/1.8);
+                    temp.innerHTML=tempDegree+celcius;
+                }
+
+            });
+        });
+    </script>
+</head>
+<body style="background:#A0A0A0;">
+    <div class="container">
+        <div class="row text-center"><h1>Weather App</h1></div>
+        <h3><b><div class="row text-center" id="city"></div></b></h3>
+        <br>
+        <div class="row text-center text-primary"><span id="temp"></span></div>
+        <br>
+        <div class="row text-center"><canvas id="animated-icon" width="64" height="64"></canvas></div>
+        <br>
+        <div class="row text-center text-warning" id="weather"></div>
+    </div>
+</body>
+</html>
